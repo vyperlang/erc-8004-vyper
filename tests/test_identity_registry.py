@@ -434,6 +434,18 @@ def test_set_agent_wallet_access_control(identity_registry, deployer):
             identity_registry.setAgentWallet(1, new_wallet, deadline, sig)
 
 
+def test_set_agent_wallet_zero_address(identity_registry, deployer):
+    """setAgentWallet reverts when newWallet is address(0)."""
+    import boa
+
+    identity_registry.register()
+
+    zero = "0x" + "00" * 20
+    deadline = boa.env.evm.patch.timestamp + 120
+    with boa.reverts("IdentityRegistry: bad wallet"):
+        identity_registry.setAgentWallet(1, zero, deadline, b"\x00" * 65)
+
+
 def test_unset_agent_wallet(identity_registry, deployer):
     """unsetAgentWallet clears the wallet to address(0)."""
     identity_registry.register()

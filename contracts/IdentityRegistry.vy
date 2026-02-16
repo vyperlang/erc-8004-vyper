@@ -370,6 +370,7 @@ def setAgentWallet(agentId: uint256, newWallet: address, deadline: uint256, sign
     """
     self._check_owner_or_approved(agentId)
 
+    assert newWallet != empty(address), "IdentityRegistry: bad wallet"
     assert block.timestamp <= deadline, "IdentityRegistry: expired deadline"
     assert deadline <= block.timestamp + _MAX_DEADLINE_DELAY, "IdentityRegistry: deadline too far"
 

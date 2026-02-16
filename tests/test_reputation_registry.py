@@ -440,6 +440,33 @@ def test_read_feedback_revoked(reputation_registry, identity_registry):
     assert revoked is True
 
 
+def test_read_feedback_invalid_index_zero(reputation_registry, identity_registry):
+    """readFeedback reverts when feedbackIndex is 0."""
+    import boa
+    import pytest
+
+    identity_registry.register()
+
+    client = boa.env.generate_address()
+    with pytest.raises(Exception):
+        reputation_registry.readFeedback(1, client, 0)
+
+
+def test_read_feedback_invalid_index_oob(reputation_registry, identity_registry):
+    """readFeedback reverts when feedbackIndex is out of bounds."""
+    import boa
+    import pytest
+
+    identity_registry.register()
+
+    client = boa.env.generate_address()
+    with boa.env.prank(client):
+        reputation_registry.giveFeedback(1, 50, 0)
+
+    with pytest.raises(Exception):
+        reputation_registry.readFeedback(1, client, 2)
+
+
 def test_read_all_feedback_no_filter(reputation_registry, identity_registry):
     """readAllFeedback with no filters returns non-revoked feedback from all clients."""
     import boa

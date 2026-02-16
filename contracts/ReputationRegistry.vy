@@ -312,6 +312,7 @@ def readFeedback(agentId: uint256, clientAddress: address, feedbackIndex: uint64
     @param feedbackIndex The 1-based index of the feedback entry.
     @return (value, valueDecimals, tag1, tag2, isRevoked).
     """
+    assert feedbackIndex > 0 and feedbackIndex <= self._last_index[agentId][clientAddress], "ReputationRegistry: feedback does not exist"
     entry: FeedbackEntry = self._feedback[agentId][clientAddress][feedbackIndex]
     return (entry.value, entry.valueDecimals, entry.tag1, entry.tag2, entry.isRevoked)
 
