@@ -187,7 +187,6 @@ erc-8004-vyper/
 │   ├── ReputationRegistry.vy
 │   ├── ValidationRegistry.vy
 │   └── interfaces/
-│       ├── IERC1271.vyi
 │       └── IIdentityRegistry.vyi
 ├── tests/
 │   ├── conftest.py
