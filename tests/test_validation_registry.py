@@ -10,8 +10,8 @@ def test_get_identity_registry(validation_registry, identity_registry):
 
 
 def test_get_version(validation_registry):
-    """getVersion returns '1.0.0'."""
-    assert validation_registry.getVersion() == "1.0.0"
+    """get_version returns '1.0.0'."""
+    assert validation_registry.get_version() == "1.0.0"
 
 
 # -- C.2: validationRequest ---------------------------------------------------

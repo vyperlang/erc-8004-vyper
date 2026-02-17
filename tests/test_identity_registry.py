@@ -256,6 +256,24 @@ def test_get_metadata_default(identity_registry):
     assert result == b""
 
 
+def test_get_metadata_agent_wallet(identity_registry, deployer):
+    """getMetadata('agentWallet') returns the 20-byte packed wallet address."""
+    identity_registry.register()
+    result = identity_registry.getMetadata(0, "agentWallet")
+    expected = bytes.fromhex(deployer[2:].lower())
+    assert result == expected
+    assert len(result) == 20
+
+
+def test_get_metadata_agent_wallet_after_unset(identity_registry, deployer):
+    """getMetadata('agentWallet') returns b'' after unsetAgentWallet."""
+    identity_registry.register()
+    assert identity_registry.getMetadata(0, "agentWallet") != b""
+
+    identity_registry.unsetAgentWallet(0)
+    assert identity_registry.getMetadata(0, "agentWallet") == b""
+
+
 # ── Task 1.5: agentWallet functions ──────────────────────────────────
 
 
@@ -586,9 +604,9 @@ def test_is_authorized_or_owner_stranger(identity_registry, deployer):
     assert identity_registry.isAuthorizedOrOwner(stranger, 0) is False
 
 
-# ── Phase A.2: getVersion ──────────────────────────────────────────
+# ── Phase A.2: get_version ─────────────────────────────────────────
 
 
 def test_get_version(identity_registry):
-    """getVersion returns '1.0.0'."""
-    assert identity_registry.getVersion() == "1.0.0"
+    """get_version returns '1.0.0'."""
+    assert identity_registry.get_version() == "1.0.0"

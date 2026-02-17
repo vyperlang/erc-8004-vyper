@@ -269,8 +269,8 @@ def test_append_response_same_responder_allowed(reputation_registry, identity_re
     assert reputation_registry.getResponseCount(0, client, 1) == 2
 
 
-def test_append_response_empty_uri_reverts(reputation_registry, identity_registry):
-    """appendResponse reverts when responseURI is empty."""
+def test_append_response_empty_uri_allowed(reputation_registry, identity_registry):
+    """appendResponse accepts an empty responseURI (spec treats it as optional)."""
     import boa
 
     identity_registry.register()
@@ -279,8 +279,8 @@ def test_append_response_empty_uri_reverts(reputation_registry, identity_registr
     with boa.env.prank(client):
         reputation_registry.giveFeedback(0, 50, 0)
 
-    with boa.reverts("ReputationRegistry: empty URI"):
-        reputation_registry.appendResponse(0, client, 1)
+    reputation_registry.appendResponse(0, client, 1)
+    assert reputation_registry.getResponseCount(0, client, 1) == 1
 
 
 def test_append_response_nonexistent_feedback(reputation_registry, identity_registry):
@@ -687,12 +687,12 @@ def test_get_last_index(reputation_registry, identity_registry):
     assert reputation_registry.getLastIndex(0, client) == 2
 
 
-# -- Phase A.2: getVersion ----------------------------------------------------
+# -- Phase A.2: get_version ---------------------------------------------------
 
 
 def test_get_version(reputation_registry):
-    """getVersion returns '1.0.0'."""
-    assert reputation_registry.getVersion() == "1.0.0"
+    """get_version returns '1.0.0'."""
+    assert reputation_registry.get_version() == "1.0.0"
 
 
 # -- Phase A.3: giveFeedback validation checks --------------------------------

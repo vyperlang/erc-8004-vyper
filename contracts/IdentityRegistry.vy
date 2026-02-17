@@ -142,7 +142,7 @@ def __init__():
     @notice Initialises the ERC-721 token with name
             "ERC8004IdentityRegistry" and symbol "AGENT",
             sets up the EIP-712 domain separator cache,
-            and starts the agent ID counter at 1.
+            and starts the agent ID counter at 0.
     """
     ownable.__init__()
     erc721.__init__(
@@ -325,10 +325,17 @@ def tokenURI(tokenId: uint256) -> String[URI_MAX]:
 def getMetadata(agentId: uint256, metadataKey: String[KEY_MAX]) -> Bytes[VALUE_MAX]:
     """
     @dev Returns the metadata value for `agentId` and `metadataKey`.
+         The reserved key "agentWallet" returns the 20-byte packed
+         wallet address from the dedicated storage mapping.
     @param agentId The 32-byte agent identifier.
     @param metadataKey The metadata key string.
     @return Bytes The metadata value, or empty bytes if unset.
     """
+    if metadataKey == _AGENT_WALLET_KEY:
+        wallet: address = self._agent_wallets[agentId]
+        if wallet != empty(address):
+            return slice(convert(wallet, bytes32), 12, 20)
+        return b""
     return self._metadata[agentId][metadataKey]
 
 
@@ -509,7 +516,7 @@ def isAuthorizedOrOwner(spender: address, agentId: uint256) -> bool:
 
 @external
 @pure
-def getVersion() -> String[8]:
+def get_version() -> String[8]:
     """
     @dev Returns the version of this contract.
     @return String[8] The version string.

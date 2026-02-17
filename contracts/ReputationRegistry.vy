@@ -151,7 +151,8 @@ def giveFeedback(
     assert feedbackValue >= -100000000000000000000000000000000000000 and feedbackValue <= 100000000000000000000000000000000000000, "ReputationRegistry: value out of range"
 
     # Self-feedback prevention: caller must not be the owner, approved address,
-    # or an approved-for-all operator for the agent.
+    # or an approved-for-all operator for the agent. Uses only standard ERC-721
+    # functions so this registry works with any compliant IdentityRegistry.
     assert msg.sender != owner, "ReputationRegistry: self-feedback not allowed"
     assert msg.sender != staticcall _IDENTITY_REGISTRY.getApproved(agentId), "ReputationRegistry: self-feedback not allowed"
     assert not staticcall _IDENTITY_REGISTRY.isApprovedForAll(owner, msg.sender), "ReputationRegistry: self-feedback not allowed"
@@ -225,8 +226,6 @@ def appendResponse(
     @param responseHash keccak256 of content at responseURI (optional).
     """
     assert feedbackIndex > 0 and feedbackIndex <= self._last_index[agentId][clientAddress], "ReputationRegistry: feedback does not exist"
-    assert len(responseURI) > 0, "ReputationRegistry: empty URI"
-
     if not self._responder_exists[agentId][clientAddress][feedbackIndex][msg.sender]:
         self._responders[agentId][clientAddress][feedbackIndex].append(msg.sender)
         self._responder_exists[agentId][clientAddress][feedbackIndex][msg.sender] = True
@@ -481,7 +480,7 @@ def getLastIndex(agentId: uint256, clientAddress: address) -> uint64:
 
 @external
 @pure
-def getVersion() -> String[8]:
+def get_version() -> String[8]:
     """
     @dev Returns the version of this contract.
     @return String[8] The version string.

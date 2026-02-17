@@ -110,7 +110,15 @@ def validationRequest(
     assert validatorAddress != empty(address), "ValidationRegistry: bad validator"
     assert self._validations[requestHash].validatorAddress == empty(address), "ValidationRegistry: exists"
 
-    assert staticcall _IDENTITY_REGISTRY.isAuthorizedOrOwner(msg.sender, agentId), "ValidationRegistry: not authorized"
+    # Authorization: caller must be owner, approved, or operator.
+    # Uses only standard ERC-721 functions so this registry works with
+    # any compliant IdentityRegistry.
+    owner: address = staticcall _IDENTITY_REGISTRY.ownerOf(agentId)
+    assert (
+        msg.sender == owner
+        or msg.sender == staticcall _IDENTITY_REGISTRY.getApproved(agentId)
+        or staticcall _IDENTITY_REGISTRY.isApprovedForAll(owner, msg.sender)
+    ), "ValidationRegistry: not authorized"
 
     self._validations[requestHash] = ValidationStatus(
         validatorAddress=validatorAddress,
@@ -271,7 +279,7 @@ def getSummary(
 
 @external
 @pure
-def getVersion() -> String[8]:
+def get_version() -> String[8]:
     """
     @dev Returns the version of this contract.
     @return String[8] The version string.

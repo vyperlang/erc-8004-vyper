@@ -43,17 +43,3 @@ def isApprovedForAll(owner: address, operator: address) -> bool:
     @return bool True if `operator` is approved for all.
     """
     ...
-
-
-@external
-@view
-def isAuthorizedOrOwner(spender: address, agentId: uint256) -> bool:
-    """
-    @dev Returns whether `spender` is the owner, approved, or an
-         approved-for-all operator for `agentId`. Reverts if
-         `agentId` does not exist.
-    @param spender The address to check.
-    @param agentId The agent identifier.
-    @return bool True if authorised.
-    """
-    ...
