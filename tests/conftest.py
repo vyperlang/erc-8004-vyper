@@ -1,7 +1,8 @@
 import os
-import pytest
+
 import boa
 import boa.interpret
+import pytest
 
 
 @pytest.fixture(autouse=True, scope="session")

@@ -1,9 +1,8 @@
 """Tests for IdentityRegistry"""
 
-from eth_utils import keccak
 from eth_abi import decode
 from eth_account import Account
-
+from eth_utils import keccak
 
 # ── Helpers ──────────────────────────────────────────────────────────
 
@@ -31,7 +30,7 @@ def _get_logs(contract):
 
 def _filter_logs(contract, event_name):
     """Return only logs matching event_name."""
-    return [l for l in _get_logs(contract) if _log_name(l) == event_name]
+    return [log for log in _get_logs(contract) if _log_name(log) == event_name]
 
 
 def _decode_metadata_set(raw_log):
@@ -104,7 +103,7 @@ def test_register_event_order(identity_registry, deployer):
     identity_registry.register()
     logs = _get_logs(identity_registry)
 
-    names = [_log_name(l) for l in logs]
+    names = [_log_name(log) for log in logs]
     assert names == ["Transfer", "MetadataSet", "Registered"]
 
     # Verify Transfer
@@ -138,7 +137,7 @@ def test_register_with_metadata_events(identity_registry, deployer):
     assert agent_id == 0
 
     logs = _get_logs(identity_registry)
-    names = [_log_name(l) for l in logs]
+    names = [_log_name(log) for log in logs]
     assert names == [
         "Transfer",
         "MetadataSet",  # agentWallet
@@ -172,7 +171,7 @@ def test_set_agent_uri(identity_registry, deployer):
 
     # Capture logs before any view call (view calls reset the computation)
     logs = _get_logs(identity_registry)
-    uri_events = [l for l in logs if _log_name(l) == "URIUpdated"]
+    uri_events = [log for log in logs if _log_name(log) == "URIUpdated"]
     assert len(uri_events) == 1
     assert uri_events[0].agentId == 0
     assert uri_events[0].newURI == "https://new.io"
@@ -187,9 +186,8 @@ def test_set_agent_uri_access_control(identity_registry):
 
     identity_registry.register()
     other = boa.env.generate_address()
-    with boa.env.prank(other):
-        with boa.reverts("IdentityRegistry: caller is not owner or approved"):
-            identity_registry.setAgentURI(0, "https://evil.io")
+    with boa.env.prank(other), boa.reverts("IdentityRegistry: caller is not owner or approved"):
+        identity_registry.setAgentURI(0, "https://evil.io")
 
 
 def test_token_uri_nonexistent(identity_registry):
@@ -221,7 +219,7 @@ def test_set_metadata_emits_event(identity_registry, deployer):
     identity_registry.setMetadata(0, "version", b"\x01")
 
     logs = _get_logs(identity_registry)
-    ms_events = [l for l in logs if _log_name(l) == "MetadataSet"]
+    ms_events = [log for log in logs if _log_name(log) == "MetadataSet"]
     # Last MetadataSet is from setMetadata (earlier ones from register)
     ms = _decode_metadata_set(ms_events[-1])
     assert ms["agentId"] == 0
@@ -244,9 +242,8 @@ def test_set_metadata_access_control(identity_registry):
 
     identity_registry.register()
     other = boa.env.generate_address()
-    with boa.env.prank(other):
-        with boa.reverts("IdentityRegistry: caller is not owner or approved"):
-            identity_registry.setMetadata(0, "key", b"val")
+    with boa.env.prank(other), boa.reverts("IdentityRegistry: caller is not owner or approved"):
+        identity_registry.setMetadata(0, "key", b"val")
 
 
 def test_get_metadata_default(identity_registry):
@@ -318,8 +315,9 @@ def test_get_agent_wallet_after_register(identity_registry, deployer):
 
 def test_set_agent_wallet_eoa(identity_registry, deployer):
     """setAgentWallet with a valid EOA EIP-712 signature updates the wallet."""
-    import boa
     import secrets
+
+    import boa
 
     identity_registry.register()
 
@@ -344,8 +342,9 @@ def test_set_agent_wallet_eoa(identity_registry, deployer):
 
 def test_set_agent_wallet_expired_deadline(identity_registry, deployer):
     """setAgentWallet reverts when deadline is in the past."""
-    import boa
     import secrets
+
+    import boa
 
     identity_registry.register()
 
@@ -371,8 +370,9 @@ def test_set_agent_wallet_expired_deadline(identity_registry, deployer):
 
 def test_set_agent_wallet_deadline_too_far(identity_registry, deployer):
     """setAgentWallet reverts when deadline is more than 5 minutes in the future."""
-    import boa
     import secrets
+
+    import boa
 
     identity_registry.register()
 
@@ -398,8 +398,9 @@ def test_set_agent_wallet_deadline_too_far(identity_registry, deployer):
 
 def test_set_agent_wallet_wrong_signer(identity_registry, deployer):
     """setAgentWallet reverts when signature is from wrong address."""
-    import boa
     import secrets
+
+    import boa
 
     identity_registry.register()
 
@@ -427,8 +428,9 @@ def test_set_agent_wallet_wrong_signer(identity_registry, deployer):
 
 def test_set_agent_wallet_access_control(identity_registry, deployer):
     """setAgentWallet reverts when called by non-owner."""
-    import boa
     import secrets
+
+    import boa
 
     identity_registry.register()
 
@@ -447,9 +449,8 @@ def test_set_agent_wallet_access_control(identity_registry, deployer):
     )
 
     other = boa.env.generate_address()
-    with boa.env.prank(other):
-        with boa.reverts("IdentityRegistry: caller is not owner or approved"):
-            identity_registry.setAgentWallet(0, new_wallet, deadline, sig)
+    with boa.env.prank(other), boa.reverts("IdentityRegistry: caller is not owner or approved"):
+        identity_registry.setAgentWallet(0, new_wallet, deadline, sig)
 
 
 def test_set_agent_wallet_zero_address(identity_registry, deployer):
@@ -480,9 +481,8 @@ def test_unset_agent_wallet_access_control(identity_registry):
     identity_registry.register()
 
     other = boa.env.generate_address()
-    with boa.env.prank(other):
-        with boa.reverts("IdentityRegistry: caller is not owner or approved"):
-            identity_registry.unsetAgentWallet(0)
+    with boa.env.prank(other), boa.reverts("IdentityRegistry: caller is not owner or approved"):
+        identity_registry.unsetAgentWallet(0)
 
 
 # ── Task 1.6: Transfer wrappers ─────────────────────────────────────
@@ -524,9 +524,8 @@ def test_transfer_access_control(identity_registry, deployer):
 
     other = boa.env.generate_address()
     recipient = boa.env.generate_address()
-    with boa.env.prank(other):
-        with boa.reverts("IdentityRegistry: caller is not owner or approved"):
-            identity_registry.transferFrom(deployer, recipient, 0)
+    with boa.env.prank(other), boa.reverts("IdentityRegistry: caller is not owner or approved"):
+        identity_registry.transferFrom(deployer, recipient, 0)
 
 
 def test_safe_transfer_with_data(identity_registry, deployer):

@@ -59,10 +59,9 @@ def test_validation_request_not_authorized(validation_registry, identity_registr
     stranger = boa.env.generate_address()
     validator = boa.env.generate_address()
     req_hash = b"\x03" * 32
-    with boa.env.prank(stranger):
-        # Titanoboa repr() bug with struct-containing HashMaps
-        with pytest.raises(Exception):
-            validation_registry.validationRequest(validator, 0, "https://req.io/3", req_hash)
+    # Titanoboa repr() bug with struct-containing HashMaps
+    with boa.env.prank(stranger), pytest.raises(Exception):  # noqa: B017
+        validation_registry.validationRequest(validator, 0, "https://req.io/3", req_hash)
 
 
 def test_validation_request_nonexistent_agent(validation_registry, identity_registry):
@@ -72,7 +71,7 @@ def test_validation_request_nonexistent_agent(validation_registry, identity_regi
 
     validator = boa.env.generate_address()
     req_hash = b"\x04" * 32
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         validation_registry.validationRequest(validator, 999, "https://req.io/4", req_hash)
 
 
@@ -88,13 +87,12 @@ def test_validation_request_duplicate_hash(validation_registry, identity_registr
     validation_registry.validationRequest(validator, 0, "https://req.io/5", req_hash)
 
     # Titanoboa repr() bug with struct-containing HashMaps
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         validation_registry.validationRequest(validator, 0, "https://req.io/6", req_hash)
 
 
 def test_validation_request_zero_validator(validation_registry, identity_registry, deployer):
     """validationRequest reverts when validatorAddress is zero."""
-    import boa
     import pytest
 
     identity_registry.register()
@@ -102,7 +100,7 @@ def test_validation_request_zero_validator(validation_registry, identity_registr
     zero = "0x" + "00" * 20
     req_hash = b"\x06" * 32
     # Titanoboa repr() bug with struct-containing HashMaps
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         validation_registry.validationRequest(zero, 0, "https://req.io/7", req_hash)
 
 
@@ -120,10 +118,12 @@ def test_validation_response_basic(validation_registry, identity_registry, deplo
     validation_registry.validationRequest(validator, 0, "https://req.io/10", req_hash)
 
     with boa.env.prank(validator):
-        validation_registry.validationResponse(req_hash, 85, "https://resp.io/1", b"\xaa" * 32, "security")
+        validation_registry.validationResponse(
+            req_hash, 85, "https://resp.io/1", b"\xaa" * 32, "security"
+        )
 
     logs = validation_registry.get_logs()
-    resp_logs = [l for l in logs if type(l).__name__ == "ValidationResponse"]
+    resp_logs = [log for log in logs if type(log).__name__ == "ValidationResponse"]
     assert len(resp_logs) == 1
     assert resp_logs[0].validatorAddress == validator
     assert resp_logs[0].agentId == 0
@@ -146,9 +146,8 @@ def test_validation_response_not_validator(validation_registry, identity_registr
     validation_registry.validationRequest(validator, 0, "https://req.io/11", req_hash)
 
     other = boa.env.generate_address()
-    with boa.env.prank(other):
-        with pytest.raises(Exception):
-            validation_registry.validationResponse(req_hash, 50)
+    with boa.env.prank(other), pytest.raises(Exception):  # noqa: B017
+        validation_registry.validationResponse(req_hash, 50)
 
 
 def test_validation_response_over_100(validation_registry, identity_registry, deployer):
@@ -162,16 +161,15 @@ def test_validation_response_over_100(validation_registry, identity_registry, de
     req_hash = b"\x12" * 32
     validation_registry.validationRequest(validator, 0, "https://req.io/12", req_hash)
 
-    with boa.env.prank(validator):
-        with pytest.raises(Exception):
-            validation_registry.validationResponse(req_hash, 101)
+    with boa.env.prank(validator), pytest.raises(Exception):  # noqa: B017
+        validation_registry.validationResponse(req_hash, 101)
 
 
 def test_validation_response_unknown_request(validation_registry, identity_registry):
     """validationResponse reverts for an unknown requestHash."""
     import pytest
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         validation_registry.validationResponse(b"\xff" * 32, 50)
 
 
@@ -204,9 +202,13 @@ def test_get_validation_status(validation_registry, identity_registry, deployer)
     validation_registry.validationRequest(validator, 0, "https://req.io/20", req_hash)
 
     with boa.env.prank(validator):
-        validation_registry.validationResponse(req_hash, 75, "https://resp.io/20", b"\xbb" * 32, "audit")
+        validation_registry.validationResponse(
+            req_hash, 75, "https://resp.io/20", b"\xbb" * 32, "audit"
+        )
 
-    addr, agent_id, resp, resp_hash, tag, last_update = validation_registry.getValidationStatus(req_hash)
+    addr, agent_id, resp, resp_hash, tag, last_update = validation_registry.getValidationStatus(
+        req_hash
+    )
     assert addr == validator
     assert agent_id == 0
     assert resp == 75
@@ -219,7 +221,7 @@ def test_get_validation_status_unknown(validation_registry):
     """getValidationStatus reverts for an unknown requestHash."""
     import pytest
 
-    with pytest.raises(Exception):
+    with pytest.raises(Exception):  # noqa: B017
         validation_registry.getValidationStatus(b"\xff" * 32)
 
 
@@ -391,7 +393,9 @@ def test_get_validation_status_before_response(validation_registry, identity_reg
     req_hash = b"\x40" * 32
     validation_registry.validationRequest(validator, 0, "https://req.io/40", req_hash)
 
-    addr, agent_id, resp, resp_hash, tag, last_update = validation_registry.getValidationStatus(req_hash)
+    addr, agent_id, resp, resp_hash, tag, last_update = validation_registry.getValidationStatus(
+        req_hash
+    )
     assert addr == validator
     assert agent_id == 0
     assert resp == 0

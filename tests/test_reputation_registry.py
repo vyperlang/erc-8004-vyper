@@ -1,8 +1,7 @@
 """Tests for ReputationRegistry"""
 
-from eth_utils import keccak
 from eth_abi import decode
-
+from eth_utils import keccak
 
 # -- Helpers ----------------------------------------------------------------
 
@@ -30,7 +29,7 @@ def _get_logs(contract):
 
 def _filter_logs(contract, event_name):
     """Return only logs matching event_name."""
-    return [l for l in _get_logs(contract) if _log_name(l) == event_name]
+    return [log for log in _get_logs(contract) if _log_name(log) == event_name]
 
 
 # -- Tests ------------------------------------------------------------------
@@ -53,7 +52,7 @@ def test_give_feedback_basic(reputation_registry, identity_registry, deployer):
 
     logs = _get_logs(reputation_registry)
     # NewFeedback has indexed(String[TAG_MAX]) so may be raw
-    fb_logs = [l for l in logs if _log_name(l) == "NewFeedback"]
+    fb_logs = [log for log in logs if _log_name(log) == "NewFeedback"]
     assert len(fb_logs) == 1
 
 
@@ -69,7 +68,7 @@ def test_give_feedback_tracks_client(reputation_registry, identity_registry):
 
     # The NewFeedback event has clientAddress indexed — verify from raw log
     logs = _get_logs(reputation_registry)
-    fb_logs = [l for l in logs if _log_name(l) == "NewFeedback"]
+    fb_logs = [log for log in logs if _log_name(log) == "NewFeedback"]
     assert len(fb_logs) == 1
     # topic[2] is the indexed clientAddress
     raw = fb_logs[0]
@@ -88,14 +87,14 @@ def test_give_feedback_increments_index(reputation_registry, identity_registry):
     client = boa.env.generate_address()
     with boa.env.prank(client):
         reputation_registry.giveFeedback(0, 10, 0)
-    logs1 = [l for l in _get_logs(reputation_registry) if _log_name(l) == "NewFeedback"]
+    logs1 = [log for log in _get_logs(reputation_registry) if _log_name(log) == "NewFeedback"]
     assert len(logs1) == 1
     d1 = decode(types, logs1[0].data)
     assert d1[0] == 1  # feedbackIndex
 
     with boa.env.prank(client):
         reputation_registry.giveFeedback(0, 20, 0)
-    logs2 = [l for l in _get_logs(reputation_registry) if _log_name(l) == "NewFeedback"]
+    logs2 = [log for log in _get_logs(reputation_registry) if _log_name(log) == "NewFeedback"]
     assert len(logs2) == 1
     d2 = decode(types, logs2[0].data)
     assert d2[0] == 2  # feedbackIndex
@@ -129,17 +128,17 @@ def test_give_feedback_with_optional_params(reputation_registry, identity_regist
         )
 
     logs = _get_logs(reputation_registry)
-    fb_logs = [l for l in logs if _log_name(l) == "NewFeedback"]
+    fb_logs = [log for log in logs if _log_name(log) == "NewFeedback"]
     assert len(fb_logs) == 1
 
     types = ["uint64", "int128", "uint8", "string", "string", "string", "string", "bytes32"]
     d = decode(types, fb_logs[0].data)
-    assert d[0] == 1       # feedbackIndex
-    assert d[1] == 100     # value
-    assert d[2] == 2       # valueDecimals
+    assert d[0] == 1  # feedbackIndex
+    assert d[1] == 100  # value
+    assert d[2] == 2  # valueDecimals
     assert d[3] == "quality"  # tag1
-    assert d[4] == "speed"    # tag2
-    assert d[5] == "https://api.example.com/v1"        # endpoint
+    assert d[4] == "speed"  # tag2
+    assert d[5] == "https://api.example.com/v1"  # endpoint
     assert d[6] == "https://feedback.example.com/1.json"  # feedbackURI
     assert d[7] == b"\xab" * 32  # feedbackHash
 
@@ -156,7 +155,7 @@ def test_revoke_feedback(reputation_registry, identity_registry):
         reputation_registry.revokeFeedback(0, 1)
 
     logs = _get_logs(reputation_registry)
-    revoked = [l for l in logs if _log_name(l) == "FeedbackRevoked"]
+    revoked = [log for log in logs if _log_name(log) == "FeedbackRevoked"]
     assert len(revoked) == 1
     assert revoked[0].agentId == 0
     assert revoked[0].clientAddress == client
@@ -174,9 +173,8 @@ def test_revoke_feedback_wrong_client(reputation_registry, identity_registry):
         reputation_registry.giveFeedback(0, 75, 0)
 
     other = boa.env.generate_address()
-    with boa.env.prank(other):
-        with boa.reverts("ReputationRegistry: feedback does not exist"):
-            reputation_registry.revokeFeedback(0, 1)
+    with boa.env.prank(other), boa.reverts("ReputationRegistry: feedback does not exist"):
+        reputation_registry.revokeFeedback(0, 1)
 
 
 def test_revoke_feedback_already_revoked(reputation_registry, identity_registry):
@@ -200,9 +198,8 @@ def test_revoke_feedback_nonexistent(reputation_registry, identity_registry):
     identity_registry.register()
 
     client = boa.env.generate_address()
-    with boa.env.prank(client):
-        with boa.reverts("ReputationRegistry: feedback does not exist"):
-            reputation_registry.revokeFeedback(0, 5)
+    with boa.env.prank(client), boa.reverts("ReputationRegistry: feedback does not exist"):
+        reputation_registry.revokeFeedback(0, 5)
 
 
 # -- Task 2.3: appendResponse and getResponseCount -------------------------
@@ -222,7 +219,7 @@ def test_append_response_basic(reputation_registry, identity_registry, deployer)
     reputation_registry.appendResponse(0, client, 1, "https://response.io/1", b"\xcc" * 32)
 
     logs = _get_logs(reputation_registry)
-    resp_logs = [l for l in logs if _log_name(l) == "ResponseAppended"]
+    resp_logs = [log for log in logs if _log_name(log) == "ResponseAppended"]
     assert len(resp_logs) == 1
     assert resp_logs[0].agentId == 0
     assert resp_logs[0].clientAddress == client
@@ -448,7 +445,8 @@ def test_read_feedback_invalid_index_zero(reputation_registry, identity_registry
     identity_registry.register()
 
     client = boa.env.generate_address()
-    with pytest.raises(Exception):
+    # Titanoboa decoder bug with String[64] in FeedbackEntry struct
+    with pytest.raises(Exception):  # noqa: B017
         reputation_registry.readFeedback(0, client, 0)
 
 
@@ -463,7 +461,8 @@ def test_read_feedback_invalid_index_oob(reputation_registry, identity_registry)
     with boa.env.prank(client):
         reputation_registry.giveFeedback(0, 50, 0)
 
-    with pytest.raises(Exception):
+    # Titanoboa decoder bug with String[64] in FeedbackEntry struct
+    with pytest.raises(Exception):  # noqa: B017
         reputation_registry.readFeedback(0, client, 2)
 
 
@@ -481,7 +480,9 @@ def test_read_all_feedback_no_filter(reputation_registry, identity_registry):
     with boa.env.prank(c2):
         reputation_registry.giveFeedback(0, 30, 0, "tag_c")
 
-    clients, indexes, values, decimals, tag1s, tag2s, revoked = reputation_registry.readAllFeedback(0)
+    clients, indexes, values, decimals, tag1s, tag2s, revoked = reputation_registry.readAllFeedback(
+        0
+    )
     assert len(clients) == 3
 
     assert clients[0] == c1
@@ -555,9 +556,7 @@ def test_read_all_feedback_include_revoked(reputation_registry, identity_registr
     assert indexes[0] == 2
 
     # With includeRevoked=True — both entries
-    clients, indexes, _, _, _, _, revoked = reputation_registry.readAllFeedback(
-        0, [], "", "", True
-    )
+    clients, indexes, _, _, _, _, revoked = reputation_registry.readAllFeedback(0, [], "", "", True)
     assert len(clients) == 2
     assert revoked[0] is True
     assert revoked[1] is False
@@ -716,9 +715,8 @@ def test_give_feedback_decimals_19_reverts(reputation_registry, identity_registr
     identity_registry.register()
 
     client = boa.env.generate_address()
-    with boa.env.prank(client):
-        with boa.reverts("ReputationRegistry: too many decimals"):
-            reputation_registry.giveFeedback(0, 1, 19)
+    with boa.env.prank(client), boa.reverts("ReputationRegistry: too many decimals"):
+        reputation_registry.giveFeedback(0, 1, 19)
 
 
 def test_give_feedback_value_at_positive_boundary(reputation_registry, identity_registry):
@@ -750,9 +748,8 @@ def test_give_feedback_value_over_positive_boundary(reputation_registry, identit
     identity_registry.register()
 
     client = boa.env.generate_address()
-    with boa.env.prank(client):
-        with boa.reverts("ReputationRegistry: value out of range"):
-            reputation_registry.giveFeedback(0, 100000000000000000000000000000000000001, 0)
+    with boa.env.prank(client), boa.reverts("ReputationRegistry: value out of range"):
+        reputation_registry.giveFeedback(0, 100000000000000000000000000000000000001, 0)
 
 
 def test_give_feedback_value_under_negative_boundary(reputation_registry, identity_registry):
@@ -762,9 +759,8 @@ def test_give_feedback_value_under_negative_boundary(reputation_registry, identi
     identity_registry.register()
 
     client = boa.env.generate_address()
-    with boa.env.prank(client):
-        with boa.reverts("ReputationRegistry: value out of range"):
-            reputation_registry.giveFeedback(0, -100000000000000000000000000000000000001, 0)
+    with boa.env.prank(client), boa.reverts("ReputationRegistry: value out of range"):
+        reputation_registry.giveFeedback(0, -100000000000000000000000000000000000001, 0)
 
 
 # -- Phase A.4: Self-feedback prevention --------------------------------------
@@ -789,9 +785,8 @@ def test_give_feedback_self_approved_reverts(reputation_registry, identity_regis
     approved = boa.env.generate_address()
     identity_registry.approve(approved, 0)
 
-    with boa.env.prank(approved):
-        with boa.reverts("ReputationRegistry: self-feedback not allowed"):
-            reputation_registry.giveFeedback(0, 50, 0)
+    with boa.env.prank(approved), boa.reverts("ReputationRegistry: self-feedback not allowed"):
+        reputation_registry.giveFeedback(0, 50, 0)
 
 
 def test_give_feedback_self_operator_reverts(reputation_registry, identity_registry, deployer):
@@ -803,6 +798,5 @@ def test_give_feedback_self_operator_reverts(reputation_registry, identity_regis
     operator = boa.env.generate_address()
     identity_registry.setApprovalForAll(operator, True)
 
-    with boa.env.prank(operator):
-        with boa.reverts("ReputationRegistry: self-feedback not allowed"):
-            reputation_registry.giveFeedback(0, 50, 0)
+    with boa.env.prank(operator), boa.reverts("ReputationRegistry: self-feedback not allowed"):
+        reputation_registry.giveFeedback(0, 50, 0)
