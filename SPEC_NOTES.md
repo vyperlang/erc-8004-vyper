@@ -195,6 +195,8 @@ erc-8004-vyper/
 │   ├── ValidationRegistry.vy
 │   └── interfaces/
 │       └── IIdentityRegistry.vyi
+├── script/
+│   └── deploy.py
 ├── tests/
 │   ├── conftest.py
 │   ├── test_identity_registry.py

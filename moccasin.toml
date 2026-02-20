@@ -1,6 +1,6 @@
 [project]
 src = "contracts"
 out = "out"
-script = "scripts"
+script = "script"
 lib = "lib"
 dependencies = ["snekmate==0.1.2"]

@@ -29,7 +29,19 @@ mox compile
 mox test
 ```
 
-106 tests across the three contracts.
+108 tests across the three contracts.
+
+## Deploy
+
+```
+mox run deploy
+```
+
+Deploys all three contracts in dependency order (IdentityRegistry, then ReputationRegistry and ValidationRegistry with the identity address). For a live network, add a network section to `moccasin.toml` and run:
+
+```
+mox run deploy --network <network-name> --account <keystore>
+```
 
 ## Reference
 
