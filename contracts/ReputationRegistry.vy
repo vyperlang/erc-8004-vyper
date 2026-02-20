@@ -101,7 +101,9 @@ def __init__(identityRegistry_: address):
             to the Identity Registry contract.
     @param identityRegistry_ The address of the Identity Registry.
     """
-    assert identityRegistry_ != empty(address), "ReputationRegistry: bad identity"
+    assert identityRegistry_ != empty(
+        address
+    ), "ReputationRegistry: bad identity"
     _IDENTITY_REGISTRY = IIdentityRegistry(identityRegistry_)
 
 
@@ -148,14 +150,23 @@ def giveFeedback(
     owner: address = staticcall _IDENTITY_REGISTRY.ownerOf(agentId)
 
     assert valueDecimals <= 18, "ReputationRegistry: too many decimals"
-    assert feedbackValue >= -100000000000000000000000000000000000000 and feedbackValue <= 100000000000000000000000000000000000000, "ReputationRegistry: value out of range"
+    assert (
+        feedbackValue
+        >= -100000000000000000000000000000000000000
+        and feedbackValue
+        <= 100000000000000000000000000000000000000
+    ), "ReputationRegistry: value out of range"
 
     # Self-feedback prevention: caller must not be the owner, approved address,
     # or an approved-for-all operator for the agent. Uses only standard ERC-721
     # functions so this registry works with any compliant IdentityRegistry.
     assert msg.sender != owner, "ReputationRegistry: self-feedback not allowed"
-    assert msg.sender != staticcall _IDENTITY_REGISTRY.getApproved(agentId), "ReputationRegistry: self-feedback not allowed"
-    assert not staticcall _IDENTITY_REGISTRY.isApprovedForAll(owner, msg.sender), "ReputationRegistry: self-feedback not allowed"
+    assert msg.sender != staticcall _IDENTITY_REGISTRY.getApproved(
+        agentId
+    ), "ReputationRegistry: self-feedback not allowed"
+    assert not staticcall _IDENTITY_REGISTRY.isApprovedForAll(
+        owner, msg.sender
+    ), "ReputationRegistry: self-feedback not allowed"
 
     idx: uint64 = self._last_index[agentId][msg.sender] + 1
     self._last_index[agentId][msg.sender] = idx
@@ -196,8 +207,14 @@ def revokeFeedback(agentId: uint256, feedbackIndex: uint64):
     @param agentId The agent the feedback was given for.
     @param feedbackIndex The 1-based index of the feedback entry.
     """
-    assert feedbackIndex > 0 and feedbackIndex <= self._last_index[agentId][msg.sender], "ReputationRegistry: feedback does not exist"
-    assert not self._feedback[agentId][msg.sender][feedbackIndex].isRevoked, "ReputationRegistry: already revoked"
+    assert (
+        feedbackIndex > 0
+        and feedbackIndex
+        <= self._last_index[agentId][msg.sender]
+    ), "ReputationRegistry: feedback does not exist"
+    assert not self._feedback[agentId][msg.sender][
+        feedbackIndex
+    ].isRevoked, "ReputationRegistry: already revoked"
 
     self._feedback[agentId][msg.sender][feedbackIndex].isRevoked = True
 
@@ -225,12 +242,24 @@ def appendResponse(
     @param responseURI URI pointing to off-chain response content.
     @param responseHash keccak256 of content at responseURI (optional).
     """
-    assert feedbackIndex > 0 and feedbackIndex <= self._last_index[agentId][clientAddress], "ReputationRegistry: feedback does not exist"
-    if not self._responder_exists[agentId][clientAddress][feedbackIndex][msg.sender]:
-        self._responders[agentId][clientAddress][feedbackIndex].append(msg.sender)
-        self._responder_exists[agentId][clientAddress][feedbackIndex][msg.sender] = True
+    assert (
+        feedbackIndex > 0
+        and feedbackIndex
+        <= self._last_index[agentId][clientAddress]
+    ), "ReputationRegistry: feedback does not exist"
+    if not self._responder_exists[agentId][clientAddress][
+        feedbackIndex
+    ][msg.sender]:
+        self._responders[agentId][clientAddress][
+            feedbackIndex
+        ].append(msg.sender)
+        self._responder_exists[agentId][clientAddress][
+            feedbackIndex
+        ][msg.sender] = True
 
-    self._response_count[agentId][clientAddress][feedbackIndex][msg.sender] += 1
+    self._response_count[agentId][clientAddress][
+        feedbackIndex
+    ][msg.sender] += 1
 
     log ResponseAppended(
         agentId=agentId,
@@ -256,11 +285,17 @@ def _count_responses(
     """
     count: uint64 = 0
     if len(responders) == 0:
-        for r: address in self._responders[agentId][clientAddress][feedbackIndex]:
-            count += self._response_count[agentId][clientAddress][feedbackIndex][r]
+        for r: address in self._responders[agentId][
+            clientAddress
+        ][feedbackIndex]:
+            count += self._response_count[agentId][
+                clientAddress
+            ][feedbackIndex][r]
     else:
         for r: address in responders:
-            count += self._response_count[agentId][clientAddress][feedbackIndex][r]
+            count += self._response_count[agentId][
+                clientAddress
+            ][feedbackIndex][r]
     return count
 
 
@@ -287,24 +322,38 @@ def getResponseCount(
 
     if clientAddress == empty(address):
         for client: address in self._clients[agentId]:
-            last: uint256 = convert(self._last_index[agentId][client], uint256)
+            last: uint256 = convert(
+                self._last_index[agentId][client], uint256
+            )
             for i: uint256 in range(last, bound=ARRAY_RETURN_MAX):
                 idx: uint64 = convert(i + 1, uint64)
-                count += self._count_responses(agentId, client, idx, responders)
+                count += self._count_responses(
+                    agentId, client, idx, responders
+                )
     elif feedbackIndex == 0:
-        last: uint256 = convert(self._last_index[agentId][clientAddress], uint256)
+        last: uint256 = convert(
+            self._last_index[agentId][clientAddress], uint256
+        )
         for i: uint256 in range(last, bound=ARRAY_RETURN_MAX):
             idx: uint64 = convert(i + 1, uint64)
-            count += self._count_responses(agentId, clientAddress, idx, responders)
+            count += self._count_responses(
+                agentId, clientAddress, idx, responders
+            )
     else:
-        count = self._count_responses(agentId, clientAddress, feedbackIndex, responders)
+        count = self._count_responses(
+            agentId, clientAddress, feedbackIndex, responders
+        )
 
     return count
 
 
 @external
 @view
-def readFeedback(agentId: uint256, clientAddress: address, feedbackIndex: uint64) -> (int128, uint8, String[TAG_MAX], String[TAG_MAX], bool):
+def readFeedback(
+    agentId: uint256,
+    clientAddress: address,
+    feedbackIndex: uint64,
+) -> (int128, uint8, String[TAG_MAX], String[TAG_MAX], bool):
     """
     @dev Returns the stored fields of a single feedback entry.
     @param agentId The agent the feedback was given for.
@@ -312,9 +361,21 @@ def readFeedback(agentId: uint256, clientAddress: address, feedbackIndex: uint64
     @param feedbackIndex The 1-based index of the feedback entry.
     @return (value, valueDecimals, tag1, tag2, isRevoked).
     """
-    assert feedbackIndex > 0 and feedbackIndex <= self._last_index[agentId][clientAddress], "ReputationRegistry: feedback does not exist"
-    entry: FeedbackEntry = self._feedback[agentId][clientAddress][feedbackIndex]
-    return (entry.value, entry.valueDecimals, entry.tag1, entry.tag2, entry.isRevoked)
+    assert (
+        feedbackIndex > 0
+        and feedbackIndex
+        <= self._last_index[agentId][clientAddress]
+    ), "ReputationRegistry: feedback does not exist"
+    entry: FeedbackEntry = self._feedback[agentId][
+        clientAddress
+    ][feedbackIndex]
+    return (
+        entry.value,
+        entry.valueDecimals,
+        entry.tag1,
+        entry.tag2,
+        entry.isRevoked,
+    )
 
 
 @external
@@ -363,10 +424,14 @@ def readAllFeedback(
     filter_tag2: bool = len(tag2) > 0
 
     for client: address in client_list:
-        last: uint256 = convert(self._last_index[agentId][client], uint256)
+        last: uint256 = convert(
+            self._last_index[agentId][client], uint256
+        )
         for i: uint256 in range(last, bound=ARRAY_RETURN_MAX):
             idx: uint64 = convert(i + 1, uint64)
-            entry: FeedbackEntry = self._feedback[agentId][client][idx]
+            entry: FeedbackEntry = self._feedback[agentId][
+                client
+            ][idx]
 
             if not includeRevoked and entry.isRevoked:
                 continue
@@ -383,7 +448,15 @@ def readAllFeedback(
             out_tag2s.append(entry.tag2)
             out_revoked.append(entry.isRevoked)
 
-    return (out_clients, out_indexes, out_values, out_decimals, out_tag1s, out_tag2s, out_revoked)
+    return (
+        out_clients,
+        out_indexes,
+        out_values,
+        out_decimals,
+        out_tag1s,
+        out_tag2s,
+        out_revoked,
+    )
 
 
 @external
@@ -404,7 +477,9 @@ def getSummary(
     @param tag2 Filter by tag2 (empty = no filter).
     @return (count, summaryValue, summaryValueDecimals).
     """
-    assert len(clientAddresses) > 0, "ReputationRegistry: clientAddresses required"
+    assert len(clientAddresses) > 0, (
+        "ReputationRegistry: clientAddresses required"
+    )
 
     filter_tag1: bool = len(tag1) > 0
     filter_tag2: bool = len(tag2) > 0
@@ -417,10 +492,14 @@ def getSummary(
     decimal_counts: uint64[19] = empty(uint64[19])
 
     for client: address in clientAddresses:
-        last: uint256 = convert(self._last_index[agentId][client], uint256)
+        last: uint256 = convert(
+            self._last_index[agentId][client], uint256
+        )
         for i: uint256 in range(last, bound=ARRAY_RETURN_MAX):
             idx: uint64 = convert(i + 1, uint64)
-            entry: FeedbackEntry = self._feedback[agentId][client][idx]
+            entry: FeedbackEntry = self._feedback[agentId][
+                client
+            ][idx]
 
             if entry.isRevoked:
                 continue
@@ -429,7 +508,13 @@ def getSummary(
             if filter_tag2 and entry.tag2 != tag2:
                 continue
 
-            factor: int256 = convert(10 ** convert(18 - entry.valueDecimals, uint256), int256)
+            factor: int256 = convert(
+                10
+                ** convert(
+                    18 - entry.valueDecimals, uint256
+                ),
+                int256,
+            )
             wad_sum += convert(entry.value, int256) * factor
             decimal_counts[entry.valueDecimals] += 1
             count += 1
@@ -447,7 +532,9 @@ def getSummary(
 
     # Average in WAD, then scale to mode precision.
     avg_wad: int256 = wad_sum // convert(count, int256)
-    scale_down: int256 = convert(10 ** convert(18 - mode_decimals, uint256), int256)
+    scale_down: int256 = convert(
+        10 ** convert(18 - mode_decimals, uint256), int256
+    )
     summary_value: int128 = convert(avg_wad // scale_down, int128)
 
     return (count, summary_value, mode_decimals)

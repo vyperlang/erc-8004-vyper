@@ -10,7 +10,6 @@
         agent existence and ownership checks via staticcall.
 """
 
-
 from interfaces import IIdentityRegistry
 
 
@@ -75,7 +74,9 @@ def __init__(identityRegistry_: address):
             to the Identity Registry contract.
     @param identityRegistry_ The address of the Identity Registry.
     """
-    assert identityRegistry_ != empty(address), "ValidationRegistry: bad identity"
+    assert identityRegistry_ != empty(
+        address
+    ), "ValidationRegistry: bad identity"
     _IDENTITY_REGISTRY = IIdentityRegistry(identityRegistry_)
 
 
@@ -107,8 +108,12 @@ def validationRequest(
     @param requestURI URI pointing to off-chain request content.
     @param requestHash Unique identifier for this request.
     """
-    assert validatorAddress != empty(address), "ValidationRegistry: bad validator"
-    assert self._validations[requestHash].validatorAddress == empty(address), "ValidationRegistry: exists"
+    assert validatorAddress != empty(
+        address
+    ), "ValidationRegistry: bad validator"
+    assert self._validations[requestHash].validatorAddress == empty(
+        address
+    ), "ValidationRegistry: exists"
 
     # Authorization: caller must be owner, approved, or operator.
     # Uses only standard ERC-721 functions so this registry works with
@@ -183,7 +188,9 @@ def validationResponse(
 
 @external
 @view
-def getValidationStatus(requestHash: bytes32) -> (address, uint256, uint8, bytes32, String[TAG_MAX], uint256):
+def getValidationStatus(
+    requestHash: bytes32,
+) -> (address, uint256, uint8, bytes32, String[TAG_MAX], uint256):
     """
     @dev Returns the stored fields of a validation request.
     @param requestHash The unique identifier of the request.
@@ -191,12 +198,21 @@ def getValidationStatus(requestHash: bytes32) -> (address, uint256, uint8, bytes
     """
     s: ValidationStatus = self._validations[requestHash]
     assert s.validatorAddress != empty(address), "ValidationRegistry: unknown"
-    return (s.validatorAddress, s.agentId, s.response, s.responseHash, s.tag, s.lastUpdate)
+    return (
+        s.validatorAddress,
+        s.agentId,
+        s.response,
+        s.responseHash,
+        s.tag,
+        s.lastUpdate,
+    )
 
 
 @external
 @view
-def getAgentValidations(agentId: uint256) -> DynArray[bytes32, ARRAY_RETURN_MAX]:
+def getAgentValidations(
+    agentId: uint256,
+) -> DynArray[bytes32, ARRAY_RETURN_MAX]:
     """
     @dev Returns the list of requestHashes for `agentId`.
     @param agentId The agent identifier.
@@ -207,7 +223,9 @@ def getAgentValidations(agentId: uint256) -> DynArray[bytes32, ARRAY_RETURN_MAX]
 
 @external
 @view
-def getValidatorRequests(validatorAddress: address) -> DynArray[bytes32, ARRAY_RETURN_MAX]:
+def getValidatorRequests(
+    validatorAddress: address,
+) -> DynArray[bytes32, ARRAY_RETURN_MAX]:
     """
     @dev Returns the list of requestHashes assigned to `validatorAddress`.
     @param validatorAddress The validator address.
@@ -260,13 +278,13 @@ def getSummary(
             continue
 
         if filter_validators:
-            if not self._match_validator(s.validatorAddress, validatorAddresses):
+            if not self._match_validator(
+                s.validatorAddress, validatorAddresses
+            ):
                 continue
-
         if filter_tag:
             if s.tag != tag:
                 continue
-
         total_response += convert(s.response, uint256)
         count += 1
 

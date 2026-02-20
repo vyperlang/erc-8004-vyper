@@ -17,6 +17,7 @@ from snekmate.auth import ownable
 # @dev We import and initialise the `erc721` module,
 # injecting the `ownable` module as a dependency.
 from snekmate.tokens import erc721
+
 initializes: ownable
 initializes: erc721[ownable := ownable]
 
@@ -217,7 +218,9 @@ def _check_owner_or_approved(agentId: uint256):
          (via the underlying `_owner_of` check in erc721).
     @param agentId The 32-byte agent identifier.
     """
-    assert erc721._is_approved_or_owner(msg.sender, agentId), "IdentityRegistry: caller is not owner or approved"
+    assert erc721._is_approved_or_owner(
+        msg.sender, agentId
+    ), "IdentityRegistry: caller is not owner or approved"
 
 
 @internal
@@ -238,7 +241,10 @@ def _clear_agent_wallet(agentId: uint256):
 
 @external
 @nonreentrant
-def register(agentURI: String[URI_MAX] = "", metadata: DynArray[MetadataEntry, METADATA_MAX] = []) -> uint256:
+def register(
+    agentURI: String[URI_MAX] = "",
+    metadata: DynArray[MetadataEntry, METADATA_MAX] = [],
+) -> uint256:
     """
     @dev Registers a new agent identity. Mints an ERC-721 token to
          `msg.sender`, sets the agent URI, initialises the agent wallet
@@ -256,9 +262,10 @@ def register(agentURI: String[URI_MAX] = "", metadata: DynArray[MetadataEntry, M
     self._next_id = agentId + 1
 
     for entry: MetadataEntry in metadata:
-        assert entry.metadataKey != _AGENT_WALLET_KEY, "IdentityRegistry: agentWallet is reserved"
+        assert (
+            entry.metadataKey != _AGENT_WALLET_KEY
+        ), "IdentityRegistry: agentWallet is reserved"
 
-    # Emits Transfer(address(0), msg.sender, agentId).
     erc721._safe_mint(msg.sender, agentId, b"")
 
     self._agent_uris[agentId] = agentURI
@@ -322,7 +329,9 @@ def tokenURI(tokenId: uint256) -> String[URI_MAX]:
 
 @external
 @view
-def getMetadata(agentId: uint256, metadataKey: String[KEY_MAX]) -> Bytes[VALUE_MAX]:
+def getMetadata(
+    agentId: uint256, metadataKey: String[KEY_MAX]
+) -> Bytes[VALUE_MAX]:
     """
     @dev Returns the metadata value for `agentId` and `metadataKey`.
          The reserved key "agentWallet" returns the 20-byte packed
@@ -340,7 +349,11 @@ def getMetadata(agentId: uint256, metadataKey: String[KEY_MAX]) -> Bytes[VALUE_M
 
 
 @external
-def setMetadata(agentId: uint256, metadataKey: String[KEY_MAX], metadataValue: Bytes[VALUE_MAX]):
+def setMetadata(
+    agentId: uint256,
+    metadataKey: String[KEY_MAX],
+    metadataValue: Bytes[VALUE_MAX],
+):
     """
     @dev Sets a metadata entry for `agentId`.
     @notice Only the owner or an approved operator can call this.
@@ -350,7 +363,9 @@ def setMetadata(agentId: uint256, metadataKey: String[KEY_MAX], metadataValue: B
     @param metadataValue The metadata value bytes.
     """
     self._check_owner_or_approved(agentId)
-    assert metadataKey != _AGENT_WALLET_KEY, "IdentityRegistry: agentWallet is reserved"
+    assert (
+        metadataKey != _AGENT_WALLET_KEY
+    ), "IdentityRegistry: agentWallet is reserved"
     self._metadata[agentId][metadataKey] = metadataValue
     log MetadataSet(
         agentId=agentId,
@@ -362,7 +377,12 @@ def setMetadata(agentId: uint256, metadataKey: String[KEY_MAX], metadataValue: B
 
 @external
 @nonreentrant
-def setAgentWallet(agentId: uint256, newWallet: address, deadline: uint256, signature: Bytes[SIG_MAX]):
+def setAgentWallet(
+    agentId: uint256,
+    newWallet: address,
+    deadline: uint256,
+    signature: Bytes[SIG_MAX],
+):
     """
     @dev Sets the agent wallet for `agentId` to `newWallet`, verified
          by an EIP-712 signature (EOA via ecrecover) or ERC-1271
@@ -379,7 +399,9 @@ def setAgentWallet(agentId: uint256, newWallet: address, deadline: uint256, sign
 
     assert newWallet != empty(address), "IdentityRegistry: bad wallet"
     assert block.timestamp <= deadline, "IdentityRegistry: expired deadline"
-    assert deadline <= block.timestamp + _MAX_DEADLINE_DELAY, "IdentityRegistry: deadline too far"
+    assert (
+        deadline <= block.timestamp + _MAX_DEADLINE_DELAY
+    ), "IdentityRegistry: deadline too far"
 
     owner: address = erc721._owner_of(agentId)
     struct_hash: bytes32 = keccak256(
@@ -421,7 +443,8 @@ def setAgentWallet(agentId: uint256, newWallet: address, deadline: uint256, sign
         assert (
             success
             and len(return_data) == 32
-            and convert(return_data, bytes32) == convert(_ERC1271_MAGIC, bytes32)
+            and convert(return_data, bytes32)
+            == convert(_ERC1271_MAGIC, bytes32)
         ), "IdentityRegistry: invalid wallet signature"
 
     self._agent_wallets[agentId] = newWallet
@@ -467,13 +490,17 @@ def transferFrom(from_: address, to: address, tokenId: uint256):
     @param to The 20-byte receiver address.
     @param tokenId The 32-byte token identifier.
     """
-    assert erc721._is_approved_or_owner(msg.sender, tokenId), "IdentityRegistry: caller is not owner or approved"
+    assert erc721._is_approved_or_owner(
+        msg.sender, tokenId
+    ), "IdentityRegistry: caller is not owner or approved"
     self._clear_agent_wallet(tokenId)
     erc721._transfer(from_, to, tokenId)
 
 
 @external
-def safeTransferFrom(from_: address, to: address, tokenId: uint256, data: Bytes[1024] = b""):
+def safeTransferFrom(
+    from_: address, to: address, tokenId: uint256, data: Bytes[1024] = b""
+):
     """
     @dev Safely transfers `tokenId` token from `from_` to `to`, then
          clears the agent wallet for `tokenId`.
@@ -490,7 +517,9 @@ def safeTransferFrom(from_: address, to: address, tokenId: uint256, data: Bytes[
     @param data The maximum 1,024-byte additional data
            with no specified format sent to `to`.
     """
-    assert erc721._is_approved_or_owner(msg.sender, tokenId), "IdentityRegistry: caller is not owner or approved"
+    assert erc721._is_approved_or_owner(
+        msg.sender, tokenId
+    ), "IdentityRegistry: caller is not owner or approved"
     self._clear_agent_wallet(tokenId)
     erc721._safe_transfer(from_, to, tokenId, data)
 
