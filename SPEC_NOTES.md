@@ -27,8 +27,6 @@ setMetadata(uint256 agentId, string metadataKey, bytes metadataValue)
 setAgentWallet(uint256 agentId, address newWallet, uint256 deadline, bytes signature)
 getAgentWallet(uint256 agentId) → address
 unsetAgentWallet(uint256 agentId)
-isAuthorizedOrOwner(address spender, uint256 agentId) → bool
-getVersion() → string
 ```
 
 Plus ERC-721 inherited functions.
@@ -66,7 +64,6 @@ readAllFeedback(uint256 agentId, address[] clientAddresses, string tag1, string 
 getResponseCount(uint256 agentId, address clientAddress, uint64 feedbackIndex, address[] responders) → uint64
 getClients(uint256 agentId) → address[]
 getLastIndex(uint256 agentId, address clientAddress) → uint64
-getVersion() → string
 ```
 
 ### Events
@@ -106,7 +103,6 @@ getValidationStatus(bytes32 requestHash) → (address validatorAddress, uint256 
 getSummary(uint256 agentId, address[] validatorAddresses, string tag) → (uint64 count, uint8 averageResponse)
 getAgentValidations(uint256 agentId) → bytes32[]
 getValidatorRequests(address validatorAddress) → bytes32[]
-getVersion() → string
 ```
 
 ### Events
@@ -125,6 +121,17 @@ ValidationResponse(address indexed validatorAddress, uint256 indexed agentId, by
 - `requestHash` is caller-computed, stored on-chain as primary key. Must be unique per request.
 - `validationResponse` can be called multiple times per requestHash (progressive validation).
 - `getSummary`: validatorAddresses (pass `[]` for all), tag (pass `""` to skip) are optional filters.
+
+
+## Vyper-specific extensions (not in spec)
+
+```
+get_version() → string
+isAuthorizedOrOwner(address spender, uint256 agentId) → bool
+```
+
+- `get_version`: Non-spec convenience function, present in all three contracts. Uses snake_case per Vyper convention.
+- `isAuthorizedOrOwner`: Non-spec convenience function exposed for integrators who know they're talking to this specific registry. The other contracts (ReputationRegistry, ValidationRegistry) do NOT call this — they use separate `ownerOf`/`getApproved`/`isApprovedForAll` calls directly, which is the correct pattern for interoperability with any compliant ERC-8004 registry.
 
 
 ## Vyper-specific design decisions
