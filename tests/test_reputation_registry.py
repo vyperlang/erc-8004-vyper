@@ -66,7 +66,7 @@ def test_give_feedback_tracks_client(reputation_registry, identity_registry):
     with boa.env.prank(client):
         reputation_registry.giveFeedback(0, 50, 0)
 
-    # The NewFeedback event has clientAddress indexed — verify from raw log
+    # The NewFeedback event has clientAddress indexed; verify from raw log
     logs = _get_logs(reputation_registry)
     fb_logs = [log for log in logs if _log_name(log) == "NewFeedback"]
     assert len(fb_logs) == 1
@@ -529,7 +529,7 @@ def test_read_all_feedback_tag1_filter(reputation_registry, identity_registry):
         reputation_registry.giveFeedback(0, 20, 0, "speed", "")
         reputation_registry.giveFeedback(0, 30, 0, "quality", "other")
 
-    # Filter for tag1="quality" — matches index 1 and 3
+    # Filter for tag1="quality": matches index 1 and 3
     clients, indexes, values, _, _, _, _ = reputation_registry.readAllFeedback(0, [], "quality")
     assert len(clients) == 2
     assert indexes[0] == 1
@@ -550,12 +550,12 @@ def test_read_all_feedback_include_revoked(reputation_registry, identity_registr
         reputation_registry.giveFeedback(0, 20, 0)
         reputation_registry.revokeFeedback(0, 1)
 
-    # Without includeRevoked (default False) — only index 2
+    # Without includeRevoked (default False), only index 2
     clients, indexes, _, _, _, _, _ = reputation_registry.readAllFeedback(0)
     assert len(clients) == 1
     assert indexes[0] == 2
 
-    # With includeRevoked=True — both entries
+    # With includeRevoked=True: both entries
     clients, indexes, _, _, _, _, revoked = reputation_registry.readAllFeedback(0, [], "", "", True)
     assert len(clients) == 2
     assert revoked[0] is True

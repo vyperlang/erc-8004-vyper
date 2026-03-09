@@ -131,7 +131,7 @@ isAuthorizedOrOwner(address spender, uint256 agentId) → bool
 ```
 
 - `get_version`: Non-spec convenience function, present in all three contracts. Uses snake_case per Vyper convention.
-- `isAuthorizedOrOwner`: Non-spec convenience function exposed for integrators who know they're talking to this specific registry. The other contracts (ReputationRegistry, ValidationRegistry) do NOT call this — they use separate `ownerOf`/`getApproved`/`isApprovedForAll` calls directly, which is the correct pattern for interoperability with any compliant ERC-8004 registry.
+- `isAuthorizedOrOwner`: Non-spec convenience function exposed for integrators who know they're talking to this specific registry. The other contracts (ReputationRegistry, ValidationRegistry) do NOT call this; they use separate `ownerOf`/`getApproved`/`isApprovedForAll` calls directly, which is the correct pattern for interoperability with any compliant ERC-8004 registry.
 
 
 ## Vyper-specific design decisions

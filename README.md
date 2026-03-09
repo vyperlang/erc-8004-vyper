@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="vyper-logo.png" width="140" alt="Vyper logo">
+</p>
+
 # erc-8004-vyper
 
 Vyper reference implementation of [ERC-8004: Trustless Agents](https://eips.ethereum.org/EIPS/eip-8004).
