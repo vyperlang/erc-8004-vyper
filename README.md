@@ -7,6 +7,8 @@
 
 # erc-8004-vyper
 
+ERC-8004 defines an on-chain registry for autonomous AI agents, covering identity, reputation, and validation. It lets agents register as NFTs, accumulate peer feedback, and request third-party validations — all without a central authority.
+
 Vyper reference implementation of [ERC-8004: Trustless Agents](https://eips.ethereum.org/EIPS/eip-8004).
 
 ## Contracts
@@ -23,6 +25,17 @@ Vyper reference implementation of [ERC-8004: Trustless Agents](https://eips.ethe
 - [Moccasin](https://github.com/Cyfrin/moccasin) (build & test framework)
 - [Snekmate](https://github.com/pcaversaccio/snekmate) 0.1.2 (ERC-721, Ownable modules)
 - [Titanoboa](https://github.com/vyperlang/titanoboa) (test backend)
+
+## Install
+
+```
+pip install moccasin
+mox install
+```
+
+> **Note:** This repo name contains hyphens, which breaks Vyper's import resolution.
+> In tests and scripts, load contracts with `boa.load("contracts/MyContract.vy")` using
+> file paths instead of Python module imports.
 
 ## Build
 
@@ -58,7 +71,7 @@ mox run deploy --network <network-name> --account <keystore>
 
 ## License
 
-[MIT](LICENSE)
+[AGPL-3.0](LICENSE)
 
 ---
 
