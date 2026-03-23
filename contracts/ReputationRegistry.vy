@@ -2,7 +2,7 @@
 """
 @title ERC-8004 Reputation Registry
 @custom:contract-name ReputationRegistry
-@license UNLICENSED
+@license AGPL-3.0-only
 @notice On-chain feedback and reputation system for ERC-8004 agents.
         Tracks feedback entries per (agentId, clientAddress) pair with
         tag-based filtering, revocation, and response tracking.

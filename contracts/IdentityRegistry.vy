@@ -2,7 +2,7 @@
 """
 @title ERC-8004 Identity Registry
 @custom:contract-name IdentityRegistry
-@license UNLICENSED
+@license AGPL-3.0-only
 @notice ERC-721 based agent identity registration with metadata,
         URI storage, and agent wallet management using EIP-712/ERC-1271
         signature verification. Implements the Identity Registry portion

@@ -2,7 +2,7 @@
 """
 @title ERC-8004 Validation Registry
 @custom:contract-name ValidationRegistry
-@license UNLICENSED
+@license AGPL-3.0-only
 @notice On-chain validation system for ERC-8004 agents.
         Tracks validation requests keyed by caller-computed requestHash.
         Each request designates a specific validator who provides a
